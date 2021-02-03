@@ -3,25 +3,25 @@ from sqlalchemy.exc import IntegrityError
 
 class User(db.Model):
     id = db.Column(db.Integer(), primary_key=True)
+    username = db.Column(db.String(255))
     email = db.Column(db.String(255), unique=True)
+    confirm_email = db.Column(db.String(255), unique=True)
     password = db.Column(db.String(255))
-    first_name = db.Column(db.String(255))
-    last_name = db.Column(db.String(255))
     
 
-    def __init__(self, first_name, last_name, email, password):
-        self.first_name = first_name
-        self.last_name = last_name
+    def __init__(self, username, email, confirm_email, password):
+        self.username = username
         self.email = email
+        self.confirm_email = confirm_email
         self.password = User.hashed_password(password)
     
     @staticmethod
     def create_user(payload):
         user = User(
+            username=payload["username"],
             email=payload["email"],
+            confirm_email=payload["confirm_email"],
             password=payload["password"],
-            first_name=payload["first_name"],
-            last_name=payload["last_name"],
         )
 
         try:
