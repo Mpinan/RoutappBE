@@ -13,9 +13,10 @@ class User(db.Model):
     password = db.Column(db.String(255))
     email_verified = db.Column(db.Boolean)
     date_created = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    routes = db.relationship('Route', backref='author', lazy='dynamic')
     
 
-    def __init__(self, username, email, password, date_created):
+    def __init__(self, username, email, password, email_verified):
       self.username = username
       self.email = email
       self.password = User.hashed_password(password)
@@ -23,16 +24,11 @@ class User(db.Model):
 
     
     @staticmethod
-    def create_user(payload):
-      user = User(
-          username=payload["username"],
-          email=payload["email"],
-          email_verified=payload["email_verified"],
-          password=payload["password"],
-      )
+    def create_user(self):
+      print(self, "i am a payload")
 
+      db.session.add(self)
       try:
-          db.session.add(user)
           db.session.commit()
           return True
       except IntegrityError:
@@ -66,7 +62,7 @@ class Route(db.Model):
     method = db.Column(db.String(255), unique=True)
     origin = db.Column(JSON)
     destination = db.Column(JSON)
-    user_id = db.Column(db.Integer())
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
 
     def __init__(self, name, method, origin, destination, user_id):
       self.name = name
