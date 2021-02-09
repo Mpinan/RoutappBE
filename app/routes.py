@@ -1,7 +1,7 @@
 from flask import Flask
 from flask import jsonify, request, json
 
-from app.models.movies_model import Film
+from app.models.models import User, Route
 from app import app
 
 import os
