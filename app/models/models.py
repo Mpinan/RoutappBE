@@ -2,6 +2,8 @@ import datetime
 from app import db, bcrypt
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.dialects.postgresql import JSON
+from itsdangerous import (TimedJSONWebSignatureSerializer
+                          as Serializer, BadSignature, SignatureExpired)
 
 class User(db.Model):
 
@@ -14,6 +16,11 @@ class User(db.Model):
     email_verified = db.Column(db.Boolean)
     date_created = db.Column(db.DateTime, default=datetime.datetime.utcnow)
     routes = db.relationship('Route', backref='author', lazy='dynamic')
+
+    def generate_auth_token(self, expiration = 600):
+      s = Serializer(app.config['SECRET_KEY'], expires_in = expiration)
+      return s.dumps({ 'id': self.id })
+
     
 
     def __init__(self, username, email, password, email_verified):
@@ -24,11 +31,16 @@ class User(db.Model):
 
     
     @staticmethod
-    def create_user(self):
-      print(self, "i am a payload")
-
-      db.session.add(self)
+    def create_user(user):
+      user = User(
+            username=user["username"],
+            password=user["password"],
+            email=user["email"],
+            email_verified=user["email_verified"],
+      )
+      
       try:
+          db.session.add(user)
           db.session.commit()
           return True
       except IntegrityError:
@@ -50,6 +62,18 @@ class User(db.Model):
         return user
       else:
         return None
+
+    @staticmethod
+    def verify_auth_token(token):
+        s = Serializer(app.config['SECRET_KEY'])
+        try:
+            data = s.loads(token)
+        except SignatureExpired:
+            return None # valid token, but expired
+        except BadSignature:
+            return None # invalid token
+        user = User.query.get(data['id'])
+        return user
 
 # Routes Model
 

@@ -50,22 +50,21 @@ def get_user():
 @app.route("/create_user", methods=["POST"])
 def create_user():
     incoming = request.get_json()
-    print(incoming)
-    success, id = User.create_user(User(
-        incoming["username"],
-        incoming["email"],
-        incoming["password"],
-        incoming["true"]
-    ))
+    print(incoming["email_verified"], "i am incoming")
+    success = User.create_user(incoming)
 
     if not success:
         return jsonify(message="User with that email already exists"), 409
-        new_user = User.query.filter_by(email=incoming["email"]).first()
 
+    new_user = User.query.filter_by(email=incoming["email"]).first()
     return jsonify(
         id=new_user.id,
-        token=generate_token(new_user)
-    )
+        message="User on DB"), 200
+    
+    # jsonify(
+    #     id=new_user.id
+    #     # token=generate_token(new_user)
+    # )
 
 
 @app.route("/get_token", methods=["POST"])
