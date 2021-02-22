@@ -4,6 +4,7 @@ class Config(object):
     DATABASE = os.getenv('DATABASE')
     DATABASE_USERNAME = os.getenv('DATABASE_USERNAME')
     DATABASE_PASSWORD = os.getenv('DATABASE_PASSWORD')
+    SECRET_KEY = os.getenv["SECRET_KEY"]
     SQLALCHEMY_DATABASE_URI = 'postgresql://%s:%s@localhost/%s' % ( DATABASE_USERNAME, DATABASE_PASSWORD, DATABASE )
     # DATABASE_URL = os.getenv("DATABASE_URL")
     # SQLALCHEMY_DATABASE_URI = DATABASE_URL

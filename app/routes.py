@@ -1,8 +1,9 @@
 from flask import Flask
 from flask import jsonify, request, json
-
+from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from app.models.models import User, Route
 from app import app
+import app.config from Config
 # from app import auth
 
 from flask_httpauth import HTTPBasicAuth
@@ -10,17 +11,20 @@ auth = HTTPBasicAuth()
 
 import os
 
-@auth.verify_password
-def verify_password(username_or_token, password):
-    # first try to authenticate by token
-    user = User.verify_auth_token(username_or_token)
-    if not user:
-        # try to authenticate with username/password
-        user = User.query.filter_by(username = username_or_token).first()
-        if not user or not user.verify_password(password):
-            return False
-    g.user = user
-    return True
+TWO_WEEKS = 1209600
+
+
+def generate_token(user, expiration=TWO_WEEKS):
+    
+    print(user, Config.SECRET_KEY)
+    s = Serializer(Config.SECRET_KEY, expires_in=expiration)
+    token = s.dumps({
+        'id': user.id,
+        'username': user.username,
+        'email': user.email,
+        'email_verified': user.email_verified
+    }).decode('utf-8')
+    return token
 
 
 @app.route('/')
@@ -57,14 +61,12 @@ def create_user():
         return jsonify(message="User with that email already exists"), 409
 
     new_user = User.query.filter_by(email=incoming["email"]).first()
+
     return jsonify(
         id=new_user.id,
-        message="User on DB"), 200
-    
-    # jsonify(
-    #     id=new_user.id
-    #     # token=generate_token(new_user)
-    # )
+        message="User on DB asd",
+        token=generate_token(new_user)), 500
+
 
 
 @app.route("/get_token", methods=["POST"])
